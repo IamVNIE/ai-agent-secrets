@@ -8,9 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.4.0] - 2026-11-11
 
 ### Changed
-- Renamed: the npm package is now `ai-agent-secret` (was `llm-envshield`) and the command is
+- Renamed: the npm package is now `ai-agent-secrets` (was `llm-envshield`) and the command is
   `agentshield` (was `envshield`). The repo moved to
-  [IamVNIE/ai-agent-secret](https://github.com/IamVNIE/ai-agent-secret).
+  [IamVNIE/ai-agent-secrets](https://github.com/IamVNIE/ai-agent-secrets).
 - The keystore defaults to `~/.agentshield` (override with `AGENTSHIELD_HOME`).
 
 ### Compatibility

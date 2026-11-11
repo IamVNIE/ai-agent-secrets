@@ -1,8 +1,8 @@
-# ai-agent-secret — keep API keys and secrets away from AI coding agents
+# ai-agent-secrets — keep API keys and secrets away from AI coding agents
 
-[![npm version](https://img.shields.io/npm/v/ai-agent-secret.svg)](https://www.npmjs.com/package/ai-agent-secret)
+[![npm version](https://img.shields.io/npm/v/ai-agent-secrets.svg)](https://www.npmjs.com/package/ai-agent-secrets)
 
-**ai-agent-secret** (CLI: `agentshield`) protects your `.env` secrets from AI coding agents such as
+**ai-agent-secrets** (CLI: `agentshield`) protects your `.env` secrets from AI coding agents such as
 Claude Code, Cursor, Codex, GitHub Copilot, opencode and pi. It encrypts `.env` files, keeps the
 encryption key outside the project, and redacts secrets from command output and agent tool results,
 so API keys never end up in an LLM's context window, chat logs or terminal history.
@@ -14,7 +14,7 @@ so secrets never reach the terminal — or the LLM reading it.
 ## Install
 
 ```sh
-npm install -g ai-agent-secret   # requires Node >= 22.13; installs the `agentshield` command
+npm install -g ai-agent-secrets   # requires Node >= 22.13; installs the `agentshield` command
 ```
 
 ## Quick start
@@ -137,7 +137,7 @@ This package was previously published as `llm-envshield` with an `envshield` com
 
 ```sh
 npm uninstall -g llm-envshield
-npm install -g ai-agent-secret
+npm install -g ai-agent-secrets
 agentshield hooks install     # re-install agent hooks under the new command name
 ```
 

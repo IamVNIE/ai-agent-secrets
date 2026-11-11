@@ -1,16 +1,16 @@
 {
-  "name": "ai-agent-secret",
+  "name": "ai-agent-secrets",
   "version": "0.4.0",
   "description": "Keep secrets away from AI coding agents (Claude Code, Cursor, Codex, Copilot): encrypted .env files with keys outside the project, plus automatic secret redaction of command output and agent tool results.",
   "type": "module",
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/IamVNIE/ai-agent-secret.git"
+    "url": "git+https://github.com/IamVNIE/ai-agent-secrets.git"
   },
-  "homepage": "https://github.com/IamVNIE/ai-agent-secret#readme",
+  "homepage": "https://github.com/IamVNIE/ai-agent-secrets#readme",
   "bugs": {
-    "url": "https://github.com/IamVNIE/ai-agent-secret/issues"
+    "url": "https://github.com/IamVNIE/ai-agent-secrets/issues"
   },
   "engines": {
     "node": ">=22.13"
