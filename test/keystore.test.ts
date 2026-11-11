@@ -7,20 +7,46 @@ import { Keystore, keyId, keystoreDir, normalizeProjectDir } from '../src/keysto
 let home: string
 
 beforeEach(() => {
-  home = fs.mkdtempSync(path.join(os.tmpdir(), 'envshield-test-'))
-  process.env.ENVSHIELD_HOME = home
+  home = fs.mkdtempSync(path.join(os.tmpdir(), 'agentshield-test-'))
+  process.env.AGENTSHIELD_HOME = home
 })
 
 afterEach(() => {
-  delete process.env.ENVSHIELD_HOME
+  delete process.env.AGENTSHIELD_HOME
   fs.rmSync(home, { recursive: true, force: true })
 })
 
 describe('keystoreDir', () => {
-  it('honors ENVSHIELD_HOME, defaults to ~/.envshield', () => {
-    expect(keystoreDir()).toBe(home)
+  const saved = { HOME: process.env.HOME, USERPROFILE: process.env.USERPROFILE }
+  afterEach(() => {
+    for (const [k, v] of Object.entries(saved)) {
+      if (v === undefined) delete process.env[k]
+      else process.env[k] = v
+    }
     delete process.env.ENVSHIELD_HOME
-    expect(keystoreDir()).toBe(path.join(os.homedir(), '.envshield'))
+  })
+
+  /** Point os.homedir() at the temp dir so the real ~/.envshield can't leak in. */
+  function fakeHome(): void {
+    delete process.env.AGENTSHIELD_HOME
+    process.env.HOME = home
+    process.env.USERPROFILE = home
+  }
+
+  it('honors AGENTSHIELD_HOME, defaults to ~/.agentshield', () => {
+    expect(keystoreDir()).toBe(home)
+    fakeHome()
+    expect(keystoreDir()).toBe(path.join(home, '.agentshield'))
+  })
+
+  it('falls back to the legacy ~/.envshield and ENVSHIELD_HOME', () => {
+    fakeHome()
+    fs.mkdirSync(path.join(home, '.envshield'))
+    expect(keystoreDir()).toBe(path.join(home, '.envshield'))
+    fs.mkdirSync(path.join(home, '.agentshield'))
+    expect(keystoreDir()).toBe(path.join(home, '.agentshield'))
+    process.env.ENVSHIELD_HOME = path.join(home, 'legacy')
+    expect(keystoreDir()).toBe(path.join(home, 'legacy'))
   })
 })
 

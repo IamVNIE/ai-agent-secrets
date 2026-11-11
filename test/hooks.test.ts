@@ -82,7 +82,7 @@ describe('handleHook adapters', () => {
   })
 })
 
-describe('envshield hook / hooks (CLI)', () => {
+describe('agentshield hook / hooks (CLI)', () => {
   let home: string
   let agentHome: string
   let proj: string
@@ -93,17 +93,17 @@ describe('envshield hook / hooks (CLI)', () => {
     cliMain(argv, { cwd: proj, stdout: out, stderr: err, input, home: agentHome })
 
   beforeEach(() => {
-    home = fs.mkdtempSync(path.join(os.tmpdir(), 'envshield-home-'))
-    agentHome = fs.mkdtempSync(path.join(os.tmpdir(), 'envshield-agents-'))
-    proj = fs.mkdtempSync(path.join(os.tmpdir(), 'envshield-proj-'))
-    process.env.ENVSHIELD_HOME = home
+    home = fs.mkdtempSync(path.join(os.tmpdir(), 'agentshield-home-'))
+    agentHome = fs.mkdtempSync(path.join(os.tmpdir(), 'agentshield-agents-'))
+    proj = fs.mkdtempSync(path.join(os.tmpdir(), 'agentshield-proj-'))
+    process.env.AGENTSHIELD_HOME = home
     fs.writeFileSync(path.join(proj, '.env'), `OPENAI_API_KEY=${SECRET}\nPORT=8080\n`)
     out = new MemWriter()
     err = new MemWriter()
   })
 
   afterEach(() => {
-    delete process.env.ENVSHIELD_HOME
+    delete process.env.AGENTSHIELD_HOME
     for (const d of [home, agentHome, proj]) fs.rmSync(d, { recursive: true, force: true })
   })
 
@@ -121,7 +121,7 @@ describe('envshield hook / hooks (CLI)', () => {
   it('ignores other projects and malformed input (fails open)', async () => {
     await cli(['encrypt'])
     out.text = ''
-    const elsewhere = fs.mkdtempSync(path.join(os.tmpdir(), 'envshield-other-'))
+    const elsewhere = fs.mkdtempSync(path.join(os.tmpdir(), 'agentshield-other-'))
     try {
       const payload = { cwd: elsewhere, tool_response: { stdout: SECRET } }
       expect(await cli(['hook', 'claude'], JSON.stringify(payload))).toBe(0)
@@ -152,7 +152,7 @@ describe('envshield hook / hooks (CLI)', () => {
     const installed = JSON.parse(fs.readFileSync(settings, 'utf8'))
     expect(installed.model).toBe('opus')
     expect(installed.hooks.PostToolUse).toHaveLength(2)
-    expect(installed.hooks.PostToolUse[1].hooks[0].command).toBe('envshield hook claude')
+    expect(installed.hooks.PostToolUse[1].hooks[0].command).toBe('agentshield hook claude')
 
     out.text = ''
     await cli(['hooks', 'status'])
@@ -168,8 +168,8 @@ describe('envshield hook / hooks (CLI)', () => {
     expect(await cli(['hooks', 'install'])).toBe(0)
 
     const codex = JSON.parse(fs.readFileSync(path.join(agentHome, '.codex', 'hooks.json'), 'utf8'))
-    expect(codex.hooks.PostToolUse[0].hooks[0].command).toBe('envshield hook codex')
-    const piExt = path.join(agentHome, '.pi', 'agent', 'extensions', 'envshield.js')
+    expect(codex.hooks.PostToolUse[0].hooks[0].command).toBe('agentshield hook codex')
+    const piExt = path.join(agentHome, '.pi', 'agent', 'extensions', 'agentshield.js')
     expect(fs.readFileSync(piExt, 'utf8')).toContain("pi.on('tool_result'")
     expect(fs.existsSync(path.join(agentHome, '.claude'))).toBe(false)
 
@@ -181,10 +181,10 @@ describe('envshield hook / hooks (CLI)', () => {
   it('installs Gemini and Cursor hooks in their own formats', async () => {
     expect(await cli(['hooks', 'install', 'gemini', 'cursor'])).toBe(0)
     const gemini = JSON.parse(fs.readFileSync(path.join(agentHome, '.gemini', 'settings.json'), 'utf8'))
-    expect(gemini.hooks.AfterTool[0].hooks[0]).toMatchObject({ command: 'envshield hook gemini', timeout: 30000 })
+    expect(gemini.hooks.AfterTool[0].hooks[0]).toMatchObject({ command: 'agentshield hook gemini', timeout: 30000 })
     const cursor = JSON.parse(fs.readFileSync(path.join(agentHome, '.cursor', 'hooks.json'), 'utf8'))
     expect(cursor.version).toBe(1)
-    expect(cursor.hooks.beforeReadFile[0].command).toBe('envshield hook cursor')
+    expect(cursor.hooks.beforeReadFile[0].command).toBe('agentshield hook cursor')
     expect(cursor.hooks.postToolUse[0].matcher).toBe('MCP:.*')
   })
 

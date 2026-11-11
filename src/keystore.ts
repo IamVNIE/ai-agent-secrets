@@ -1,5 +1,5 @@
 /**
- * Per-user keystore at ~/.envshield/keystore.db (SQLite via node:sqlite).
+ * Per-user keystore at ~/.agentshield/keystore.db (SQLite via node:sqlite).
  * Maps (absolute project dir, env filename) -> 256-bit AES key, so key
  * material never lives inside the project an LLM agent works in.
  */
@@ -23,7 +23,14 @@ function getDatabaseSync(): (typeof import('node:sqlite'))['DatabaseSync'] {
 }
 
 export function keystoreDir(): string {
-  return process.env.ENVSHIELD_HOME ?? path.join(os.homedir(), '.envshield')
+  if (process.env.AGENTSHIELD_HOME) return process.env.AGENTSHIELD_HOME
+  // Pre-rename installs (llm-envshield) kept keys in ~/.envshield / ENVSHIELD_HOME;
+  // keep using them so already-encrypted projects still decrypt.
+  if (process.env.ENVSHIELD_HOME) return process.env.ENVSHIELD_HOME
+  const dir = path.join(os.homedir(), '.agentshield')
+  const legacy = path.join(os.homedir(), '.envshield')
+  if (!fs.existsSync(dir) && fs.existsSync(legacy)) return legacy
+  return dir
 }
 
 /**

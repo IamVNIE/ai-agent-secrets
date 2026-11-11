@@ -1,22 +1,22 @@
 {
-  "name": "llm-envshield",
-  "version": "0.3.0",
-  "description": "Encrypt .env files with keys stored outside the project, and run commands with automatic secret redaction — so LLM agents and logs never see your keys.",
+  "name": "ai-agent-secret",
+  "version": "0.4.0",
+  "description": "Keep secrets away from AI coding agents (Claude Code, Cursor, Codex, Copilot): encrypted .env files with keys outside the project, plus automatic secret redaction of command output and agent tool results.",
   "type": "module",
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/IamVNIE/env-protector-for-llm.git"
+    "url": "git+https://github.com/IamVNIE/ai-agent-secret.git"
   },
-  "homepage": "https://github.com/IamVNIE/env-protector-for-llm#readme",
+  "homepage": "https://github.com/IamVNIE/ai-agent-secret#readme",
   "bugs": {
-    "url": "https://github.com/IamVNIE/env-protector-for-llm/issues"
+    "url": "https://github.com/IamVNIE/ai-agent-secret/issues"
   },
   "engines": {
     "node": ">=22.13"
   },
   "bin": {
-    "envshield": "dist/cli.js"
+    "agentshield": "dist/cli.js"
   },
   "exports": {
     ".": {
@@ -35,13 +35,28 @@
     "prepack": "npm run build"
   },
   "keywords": [
+    "ai-agent",
+    "ai-agents",
+    "secrets",
+    "secret-management",
     "dotenv",
     "env",
-    "secrets",
+    "encrypted-env",
+    "dotenv-encrypt",
+    "env-encryption",
     "encryption",
     "redaction",
+    "secret-redaction",
     "llm",
-    "ai-agents",
+    "llm-security",
+    "ai-security",
+    "claude-code",
+    "cursor",
+    "codex",
+    "copilot",
+    "coding-agent",
+    "agent-hooks",
+    "api-keys",
     "security"
   ],
   "devDependencies": {

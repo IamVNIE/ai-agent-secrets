@@ -1,6 +1,6 @@
 /**
  * Post-tool-call hooks for LLM coding agents. Every tool result an agent
- * receives is passed through `envshield hook <agent>`, which masks protected
+ * receives is passed through `agentshield hook <agent>`, which masks protected
  * .env values before the model sees them — even if the agent `cat`s a decrypted
  * file, reads a log the app wrote, or calls an MCP tool that echoes a key.
  *
@@ -19,11 +19,11 @@ export function isAgent(name: string): name is Agent {
   return (AGENTS as readonly string[]).includes(name)
 }
 
-/** Marks every config entry envshield owns, so install is idempotent and uninstall is surgical. */
-const HOOK_MARKER = 'envshield hook'
+/** Marks every config entry agentshield owns, so install is idempotent and uninstall is surgical. */
+const HOOK_MARKER = 'agentshield hook'
 
 const REDACTED_NOTE =
-  'envshield: this tool call completed, but its output contained protected secret values, ' +
+  'agentshield: this tool call completed, but its output contained protected secret values, ' +
   'which have been masked. This is the real output with secrets redacted — do not retry ' +
   'to get the unmasked values.'
 
@@ -114,10 +114,10 @@ export function handleHook(agent: Agent | 'generic', input: Json, secrets: reado
           exitCode: 0,
           stdout: JSON.stringify({
             permission: 'deny',
-            user_message: 'envshield blocked reading a file that contains protected secret values.',
+            user_message: 'agentshield blocked reading a file that contains protected secret values.',
             agent_message:
-              'envshield: this file contains protected secret values and cannot be read. ' +
-              'Run commands that need the secrets via `envshield run -- <cmd>`.',
+              'agentshield: this file contains protected secret values and cannot be read. ' +
+              'Run commands that need the secrets via `agentshield run -- <cmd>`.',
           }),
         }
       }
@@ -167,9 +167,9 @@ function configFile(agent: Agent, { home, env = process.env }: AgentPaths): stri
     case 'cursor':
       return path.join(home, '.cursor', 'hooks.json')
     case 'pi':
-      return path.join(env.PI_CODING_AGENT_DIR ?? path.join(home, '.pi', 'agent'), 'extensions', 'envshield.js')
+      return path.join(env.PI_CODING_AGENT_DIR ?? path.join(home, '.pi', 'agent'), 'extensions', 'agentshield.js')
     case 'opencode':
-      return path.join(env.XDG_CONFIG_HOME ?? path.join(home, '.config'), 'opencode', 'plugins', 'envshield.js')
+      return path.join(env.XDG_CONFIG_HOME ?? path.join(home, '.config'), 'opencode', 'plugins', 'agentshield.js')
   }
 }
 
@@ -203,7 +203,7 @@ function readJson(file: string): Json {
 
 function writeFileAtomic(file: string, content: string): void {
   fs.mkdirSync(path.dirname(file), { recursive: true })
-  if (fs.existsSync(file)) fs.copyFileSync(file, `${file}.envshield-backup`)
+  if (fs.existsSync(file)) fs.copyFileSync(file, `${file}.agentshield-backup`)
   const tmp = `${file}.${process.pid}.tmp`
   fs.writeFileSync(tmp, content)
   fs.renameSync(tmp, file)
@@ -246,27 +246,27 @@ function matcherHook(agent: 'claude' | 'codex' | 'gemini'): MatcherGroup {
     case 'claude':
       return { matcher: '*', hooks: [{ type: 'command', command, timeout: 30 }] }
     case 'codex':
-      return { matcher: '.*', hooks: [{ type: 'command', command, timeout: 30, statusMessage: 'envshield: redacting secrets' }] }
+      return { matcher: '.*', hooks: [{ type: 'command', command, timeout: 30, statusMessage: 'agentshield: redacting secrets' }] }
     case 'gemini':
-      return { matcher: '.*', hooks: [{ name: 'envshield', type: 'command', command, timeout: 30_000 }] }
+      return { matcher: '.*', hooks: [{ name: 'agentshield', type: 'command', command, timeout: 30_000 }] }
   }
 }
 
 /**
  * pi and OpenCode take in-process JS plugins. They shell out to the same
- * `envshield hook` entry point (constant args, so the Windows shell is safe),
+ * `agentshield hook` entry point (constant args, so the Windows shell is safe),
  * keeping secrets out of the agent process entirely. Failures pass the
  * original output through: a broken hook must not break the agent.
  */
 const PLUGIN_HELPER = `import { spawn } from 'node:child_process'
 
-/** Ask envshield to mask protected .env values in \`payload\`; resolves undefined if nothing changed. */
-function envshieldRedact(agent, cwd, payload) {
+/** Ask agentshield to mask protected .env values in \`payload\`; resolves undefined if nothing changed. */
+function agentshieldRedact(agent, cwd, payload) {
   return new Promise((resolve) => {
     let out = ''
     let child
     try {
-      child = spawn('envshield', ['hook', agent], { shell: process.platform === 'win32', windowsHide: true })
+      child = spawn('agentshield', ['hook', agent], { shell: process.platform === 'win32', windowsHide: true })
     } catch {
       return resolve(undefined)
     }
@@ -286,12 +286,12 @@ function envshieldRedact(agent, cwd, payload) {
 }
 `
 
-const PI_EXTENSION = `// ${HOOK_MARKER} pi — installed by \`envshield hooks install\`; remove with \`envshield hooks uninstall pi\`.
+const PI_EXTENSION = `// ${HOOK_MARKER} pi — installed by \`agentshield hooks install\`; remove with \`agentshield hooks uninstall pi\`.
 // Masks protected .env values in every tool result before the model sees it.
 ${PLUGIN_HELPER}
 export default function (pi) {
   pi.on('tool_result', async (event, ctx) => {
-    const redacted = await envshieldRedact('pi', ctx.cwd, {
+    const redacted = await agentshieldRedact('pi', ctx.cwd, {
       content: event.content,
       structuredContent: event.structuredContent,
     })
@@ -303,12 +303,12 @@ export default function (pi) {
 }
 `
 
-const OPENCODE_PLUGIN = `// ${HOOK_MARKER} opencode — installed by \`envshield hooks install\`; remove with \`envshield hooks uninstall opencode\`.
+const OPENCODE_PLUGIN = `// ${HOOK_MARKER} opencode — installed by \`agentshield hooks install\`; remove with \`agentshield hooks uninstall opencode\`.
 // Masks protected .env values in every tool result before the model sees it.
 ${PLUGIN_HELPER}
-export const EnvShield = async ({ directory }) => ({
+export const AgentShield = async ({ directory }) => ({
   'tool.execute.after': async (input, output) => {
-    const redacted = await envshieldRedact('opencode', directory, {
+    const redacted = await agentshieldRedact('opencode', directory, {
       output: output.output,
       metadata: output.metadata,
     })
@@ -336,7 +336,7 @@ export function hookStatus(agent: Agent, paths: AgentPaths): InstallState {
   return text.includes(`${HOOK_MARKER} ${agent}`) ? 'installed' : 'not installed'
 }
 
-/** Install (idempotently) the envshield hook for one agent; returns the file written. */
+/** Install (idempotently) the agentshield hook for one agent; returns the file written. */
 export function installHook(agent: Agent, paths: AgentPaths): string {
   const file = configFile(agent, paths)
   switch (agent) {
@@ -372,7 +372,7 @@ export function installHook(agent: Agent, paths: AgentPaths): string {
   }
 }
 
-/** Remove the envshield hook for one agent, leaving every other setting intact. */
+/** Remove the agentshield hook for one agent, leaving every other setting intact. */
 export function uninstallHook(agent: Agent, paths: AgentPaths): boolean {
   const file = configFile(agent, paths)
   if (agent === 'pi' || agent === 'opencode') {

@@ -38,21 +38,21 @@ const envPath = () => path.join(proj, '.env')
 const readEnv = () => fs.readFileSync(envPath(), 'utf8')
 
 beforeEach(() => {
-  home = fs.mkdtempSync(path.join(os.tmpdir(), 'envshield-home-'))
-  proj = fs.mkdtempSync(path.join(os.tmpdir(), 'envshield-proj-'))
-  process.env.ENVSHIELD_HOME = home
+  home = fs.mkdtempSync(path.join(os.tmpdir(), 'agentshield-home-'))
+  proj = fs.mkdtempSync(path.join(os.tmpdir(), 'agentshield-proj-'))
+  process.env.AGENTSHIELD_HOME = home
   fs.writeFileSync(envPath(), ENV_CONTENT)
   out = new MemWriter()
   err = new MemWriter()
 })
 
 afterEach(() => {
-  delete process.env.ENVSHIELD_HOME
+  delete process.env.AGENTSHIELD_HOME
   fs.rmSync(home, { recursive: true, force: true })
   fs.rmSync(proj, { recursive: true, force: true })
 })
 
-describe('envshield encrypt', () => {
+describe('agentshield encrypt', () => {
   it('encrypts values >= 5 chars, leaves short values and comments alone', async () => {
     expect(await cli('encrypt')).toBe(0)
     const content = readEnv()
@@ -78,7 +78,7 @@ describe('envshield encrypt', () => {
     await cli('encrypt')
     const content = readEnv()
     expect(content.startsWith(PREAMBLE_MARKER)).toBe(true)
-    expect(content).toContain('envshield run -- ')
+    expect(content).toContain('agentshield run -- ')
     expect(content.split(PREAMBLE_MARKER)).toHaveLength(2)
     fs.appendFileSync(envPath(), 'NEW_TOKEN=another-secret-value\n')
     await cli('encrypt')
@@ -107,7 +107,7 @@ describe('envshield encrypt', () => {
   })
 })
 
-describe('envshield decrypt', () => {
+describe('agentshield decrypt', () => {
   it('--stdout prints plaintext without touching the file', async () => {
     await cli('encrypt')
     const encrypted = readEnv()
@@ -124,7 +124,7 @@ describe('envshield decrypt', () => {
 
   it('fails with a helpful error when no key exists for this project', async () => {
     await cli('encrypt')
-    const stolen = fs.mkdtempSync(path.join(os.tmpdir(), 'envshield-stolen-'))
+    const stolen = fs.mkdtempSync(path.join(os.tmpdir(), 'agentshield-stolen-'))
     try {
       fs.copyFileSync(envPath(), path.join(stolen, '.env'))
       const code = await cliMain(['decrypt'], { cwd: stolen, stdout: out, stderr: err })
@@ -136,7 +136,7 @@ describe('envshield decrypt', () => {
   })
 })
 
-describe('envshield run', () => {
+describe('agentshield run', () => {
   it('decrypts in memory and redacts secrets printed by the child', async () => {
     await cli('encrypt')
     const code = await cli(
@@ -166,7 +166,7 @@ describe('envshield run', () => {
 
   it('fails when encrypted values exist but the key is missing', async () => {
     await cli('encrypt')
-    const stolen = fs.mkdtempSync(path.join(os.tmpdir(), 'envshield-stolen2-'))
+    const stolen = fs.mkdtempSync(path.join(os.tmpdir(), 'agentshield-stolen2-'))
     try {
       fs.copyFileSync(envPath(), path.join(stolen, '.env'))
       const code = await cliMain(['run', '--', process.execPath, '-e', '0'], {
@@ -218,7 +218,7 @@ describe('envshield run', () => {
   })
 })
 
-describe('envshield keys', () => {
+describe('agentshield keys', () => {
   it('keys list shows the project entry without key material', async () => {
     await cli('encrypt')
     expect(await cli('keys', 'list')).toBe(0)
@@ -237,7 +237,7 @@ describe('envshield keys', () => {
   })
 })
 
-describe('envshield misc', () => {
+describe('agentshield misc', () => {
   it('--version prints a semver', async () => {
     expect(await cli('--version')).toBe(0)
     expect(out.text.trim()).toMatch(/^\d+\.\d+\.\d+/)
@@ -252,7 +252,7 @@ describe('envshield misc', () => {
     expect(await cli('source', '.env')).toBe(1)
     expect(err.text).toMatch(/not supported/i)
     expect(err.text).toMatch(/shell builtin/i)
-    expect(err.text).toContain('envshield run -- ')
+    expect(err.text).toContain('agentshield run -- ')
     expect(err.text).not.toMatch(/unknown command/i) // not the generic fallthrough
   })
 })

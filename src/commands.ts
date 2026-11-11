@@ -44,22 +44,22 @@ interface Ctx {
   agentPaths: AgentPaths
 }
 
-const HELP = `envshield — encrypted .env with out-of-project keys + output redaction
+const HELP = `agentshield — encrypted .env with out-of-project keys + output redaction
 
 Usage:
-  envshield encrypt [-f <file>]            encrypt values (>= 5 chars) in place
-  envshield decrypt [-f <file>] [--stdout] restore plaintext (key must exist locally)
-  envshield run [-f <file>] -- <command>   run with decrypted env, secrets redacted in output
+  agentshield encrypt [-f <file>]            encrypt values (>= 5 chars) in place
+  agentshield decrypt [-f <file>] [--stdout] restore plaintext (key must exist locally)
+  agentshield run [-f <file>] -- <command>   run with decrypted env, secrets redacted in output
                                            chain via the shell: run -- "a && b" (quote the whole line)
-  envshield keys list                      show known projects (never key material)
-  envshield keys path                      show keystore location
-  envshield hooks install [agent...]       redact secrets from every agent tool result
+  agentshield keys list                      show known projects (never key material)
+  agentshield keys path                      show keystore location
+  agentshield hooks install [agent...]       redact secrets from every agent tool result
                                            (agents: ${AGENTS.join(', ')}; default: all detected)
-  envshield hooks uninstall [agent...]     remove envshield hooks (default: all)
-  envshield hooks status                   show where hooks are installed
-  envshield --version | --help
+  agentshield hooks uninstall [agent...]     remove agentshield hooks (default: all)
+  agentshield hooks status                   show where hooks are installed
+  agentshield --version | --help
 
-Keys live in ${path.join('~', '.envshield', 'keystore.db')} (override dir with ENVSHIELD_HOME),
+Keys live in ${path.join('~', '.agentshield', 'keystore.db')} (override dir with AGENTSHIELD_HOME),
 mapped to (project directory, env filename) — never inside the project.
 Values shorter than 5 characters are not protected (not encrypted, not redacted).
 `
@@ -92,8 +92,8 @@ function readEnvFile(ctx: Ctx, filePath: string): string | undefined {
 function noKeyError(ctx: Ctx, dir: string, base: string): number {
   ctx.stderr.write(
     `error: no key found for ${path.join(dir, base)}\n` +
-      `Keys are bound to the directory where "envshield encrypt" ran.\n` +
-      `Run from that project, or inspect known projects with: envshield keys list\n`,
+      `Keys are bound to the directory where "agentshield encrypt" ran.\n` +
+      `Run from that project, or inspect known projects with: agentshield keys list\n`,
   )
   return 1
 }
@@ -148,7 +148,7 @@ function cmdDecrypt(ctx: Ctx, file: string | undefined, toStdout: boolean): numb
       ctx.stdout.write(next)
     } else {
       atomicWrite(filePath, next)
-      ctx.stdout.write(`decrypted ${base} in place — re-run "envshield encrypt" before letting agents near it\n`)
+      ctx.stdout.write(`decrypted ${base} in place — re-run "agentshield encrypt" before letting agents near it\n`)
     }
     return 0
   } finally {
@@ -158,7 +158,7 @@ function cmdDecrypt(ctx: Ctx, file: string | undefined, toStdout: boolean): numb
 
 async function cmdRun(ctx: Ctx, file: string | undefined, command: string[]): Promise<number> {
   if (command.length === 0) {
-    ctx.stderr.write('usage: envshield run [-f <file>] -- <command> [args...]\n')
+    ctx.stderr.write('usage: agentshield run [-f <file>] -- <command> [args...]\n')
     return 1
   }
   const { filePath, dir, base } = resolveEnvFile(ctx, file)
@@ -207,7 +207,7 @@ function cmdKeys(ctx: Ctx, sub: string | undefined): number {
     try {
       const entries = keystore.list()
       if (entries.length === 0) {
-        ctx.stdout.write('no keys stored yet — run "envshield encrypt" in a project\n')
+        ctx.stdout.write('no keys stored yet — run "agentshield encrypt" in a project\n')
         return 0
       }
       for (const e of entries) {
@@ -218,7 +218,7 @@ function cmdKeys(ctx: Ctx, sub: string | undefined): number {
       keystore.close()
     }
   }
-  ctx.stderr.write('usage: envshield keys <list|path>\n')
+  ctx.stderr.write('usage: agentshield keys <list|path>\n')
   return 1
 }
 
@@ -229,13 +229,13 @@ async function readAllStdin(): Promise<string> {
 }
 
 /**
- * `envshield hook <agent>`: called by the agent after every tool call with the
+ * `agentshield hook <agent>`: called by the agent after every tool call with the
  * result on stdin. Fails open (exit 0, output untouched) on bad input, so a
  * hook problem never wedges the agent.
  */
 async function cmdHook(ctx: Ctx, agent: string | undefined): Promise<number> {
   if (!agent || !(isAgent(agent) || agent === 'generic')) {
-    ctx.stderr.write(`usage: envshield hook <${AGENTS.join('|')}|generic>  (called by the agent, not by hand)\n`)
+    ctx.stderr.write(`usage: agentshield hook <${AGENTS.join('|')}|generic>  (called by the agent, not by hand)\n`)
     return 1
   }
   try {
@@ -245,7 +245,7 @@ async function cmdHook(ctx: Ctx, agent: string | undefined): Promise<number> {
     if (result.stdout !== undefined) ctx.stdout.write(result.stdout)
     return result.exitCode
   } catch (error) {
-    ctx.stderr.write(`envshield hook: ${error instanceof Error ? error.message : String(error)}\n`)
+    ctx.stderr.write(`agentshield hook: ${error instanceof Error ? error.message : String(error)}\n`)
     return 0
   }
 }
@@ -278,7 +278,7 @@ function cmdHooks(ctx: Ctx, sub: string | undefined, rest: string[]): number {
     if (!requested) return 1
     const agents = requested.length > 0 ? requested : detectAgents(paths)
     if (agents.length === 0) {
-      ctx.stderr.write(`no supported agents detected — name them explicitly: envshield hooks install <${AGENTS.join('|')}>\n`)
+      ctx.stderr.write(`no supported agents detected — name them explicitly: agentshield hooks install <${AGENTS.join('|')}>\n`)
       return 1
     }
     for (const agent of agents) {
@@ -286,7 +286,7 @@ function cmdHooks(ctx: Ctx, sub: string | undefined, rest: string[]): number {
       const note = AGENT_NOTES[agent]
       ctx.stdout.write(`${agent}: hook installed in ${file}${note ? `\n  note: ${note}` : ''}\n`)
     }
-    ctx.stdout.write('tool output in these agents is now redacted for every project encrypted with envshield\n')
+    ctx.stdout.write('tool output in these agents is now redacted for every project encrypted with agentshield\n')
     return 0
   }
   if (sub === 'uninstall') {
@@ -297,7 +297,7 @@ function cmdHooks(ctx: Ctx, sub: string | undefined, rest: string[]): number {
     }
     return 0
   }
-  ctx.stderr.write('usage: envshield hooks <install|uninstall|status> [agent...]\n')
+  ctx.stderr.write('usage: agentshield hooks <install|uninstall|status> [agent...]\n')
   return 1
 }
 
@@ -360,14 +360,14 @@ export async function cliMain(argv: string[], io: CliIo = {}): Promise<number> {
         return cmdHooks(ctx, rawArgs[0], rawArgs.slice(1))
       case 'source':
         ctx.stderr.write(
-          `error: "envshield source" is not supported — and can't be.\n` +
-            `"source" is a shell builtin: it loads variables into your current shell. envshield\n` +
+          `error: "agentshield source" is not supported — and can't be.\n` +
+            `"source" is a shell builtin: it loads variables into your current shell. agentshield\n` +
             `runs as a separate process, so it can't push env vars back into the shell where your\n` +
             `next command runs. This is true on macOS, Linux, and Windows alike.\n\n` +
-            `Run your command as a child of envshield instead — it gets the decrypted env, and\n` +
+            `Run your command as a child of agentshield instead — it gets the decrypted env, and\n` +
             `secrets are redacted from its output:\n` +
-            `  envshield run -- docker compose up\n` +
-            `  envshield run -- "npm run migrate && docker compose up"   (quote the line to chain)\n`,
+            `  agentshield run -- docker compose up\n` +
+            `  agentshield run -- "npm run migrate && docker compose up"   (quote the line to chain)\n`,
         )
         return 1
       default:

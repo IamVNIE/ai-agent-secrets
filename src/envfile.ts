@@ -71,20 +71,23 @@ export function transformEnvValues(
 }
 
 /** First line of the agent-facing preamble; its presence anywhere means "already added". */
-export const PREAMBLE_MARKER = '# --- envshield: encrypted env file ---'
+export const PREAMBLE_MARKER = '# --- agentshield: encrypted env file ---'
+
+/** Marker written by the package's previous name (llm-envshield). */
+const LEGACY_PREAMBLE_MARKER = '# --- envshield: encrypted env file ---'
 
 const PREAMBLE_LINES = [
   PREAMBLE_MARKER,
   '# Values starting with "enc:gcm:" are AES-256-GCM encrypted. The key is NOT in this',
   '# project; it lives in the user\'s keystore. Notes for AI agents and tools:',
-  '#  - Do not try to decrypt these values or read ~/.envshield. You don\'t need them.',
-  '#  - Run anything that needs these variables through envshield:',
-  '#      envshield run -- npm start',
-  '#      envshield run -- "npm run migrate && npm test"   (quote the line to chain)',
+  '#  - Do not try to decrypt these values or read ~/.agentshield. You don\'t need them.',
+  '#  - Run anything that needs these variables through agentshield:',
+  '#      agentshield run -- npm start',
+  '#      agentshield run -- "npm run migrate && npm test"   (quote the line to chain)',
   '#  - Secrets show up masked (e.g. ************ab) in output. That is expected.',
-  '#  - To add a variable: append KEY=value to this file, then run: envshield encrypt',
-  '#  - Never run "envshield decrypt"; it is for humans only.',
-  '# --- end envshield ---',
+  '#  - To add a variable: append KEY=value to this file, then run: agentshield encrypt',
+  '#  - Never run "agentshield decrypt"; it is for humans only.',
+  '# --- end agentshield ---',
 ]
 
 function eolOf(content: string): string {
@@ -97,7 +100,7 @@ function preambleText(eol: string): string {
 
 /** Prepend the agent-facing usage preamble unless the file already has one. */
 export function addPreamble(content: string): string {
-  if (content.includes(PREAMBLE_MARKER)) return content
+  if (content.includes(PREAMBLE_MARKER) || content.includes(LEGACY_PREAMBLE_MARKER)) return content
   return preambleText(eolOf(content)) + content
 }
 

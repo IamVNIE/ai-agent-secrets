@@ -42,7 +42,7 @@ function cmdQuote(arg: string): string {
  *
  * Three dispatch cases:
  *  - No discrete args (`command` is a whole line) → run through the shell. This lets users
- *    chain with the shell — `envshield run -- "migrate && docker compose up"` — and lets a
+ *    chain with the shell — `agentshield run -- "migrate && docker compose up"` — and lets a
  *    bare `.cmd`/`.bat` resolve via PATHEXT on Windows.
  *  - Windows + bare name or `.cmd`/`.bat` → route through cmd.exe. Node refuses to spawn
  *    batch files with shell:false (EINVAL, CVE-2024-27980), and a bare name needs PATHEXT.

@@ -43,4 +43,4 @@ jobs:
           mkdir -p /tmp/smoke && cd /tmp/smoke
           npm init -y > /dev/null
           npm install "$GITHUB_WORKSPACE/$TARBALL" > /dev/null
-          npx envshield --version
+          npx agentshield --version

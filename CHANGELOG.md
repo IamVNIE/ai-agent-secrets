@@ -5,6 +5,21 @@ All notable changes to this project are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.0] - 2026-11-11
+
+### Changed
+- Renamed: the npm package is now `ai-agent-secret` (was `llm-envshield`) and the command is
+  `agentshield` (was `envshield`). The repo moved to
+  [IamVNIE/ai-agent-secret](https://github.com/IamVNIE/ai-agent-secret).
+- The keystore defaults to `~/.agentshield` (override with `AGENTSHIELD_HOME`).
+
+### Compatibility
+- If `~/.agentshield` doesn't exist, the old `~/.envshield` keystore (or `ENVSHIELD_HOME`) is
+  used, so projects encrypted with `envshield` still decrypt.
+- Files that already carry the old `envshield` preamble don't get a second one.
+- Hooks installed by `envshield` are not recognized by `agentshield`; uninstall them with the
+  old command and re-run `agentshield hooks install`.
+
 ## [0.3.0] - 2026-10-08
 
 ### Added

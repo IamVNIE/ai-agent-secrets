@@ -26,7 +26,7 @@ export function encryptValue(plaintext: string, key: Buffer): string {
 
 export function decryptValue(token: string, key: Buffer): string {
   if (!isEncryptedValue(token)) {
-    throw new Error('value is not an envshield-encrypted token')
+    throw new Error('value is not an agentshield-encrypted token')
   }
   const body = Buffer.from(token.slice(ENC_PREFIX.length), 'base64')
   if (body.length < IV_LENGTH + TAG_LENGTH) {
