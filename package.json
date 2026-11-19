@@ -1,6 +1,6 @@
 {
   "name": "ai-agent-secrets",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "description": "Keep secrets away from AI coding agents (Claude Code, Cursor, Codex, Copilot): encrypted .env files with keys outside the project, plus automatic secret redaction of command output and agent tool results.",
   "type": "module",
   "license": "Apache-2.0",
